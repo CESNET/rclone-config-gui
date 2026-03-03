@@ -78,18 +78,18 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: windows-build
-          path: ./python/dist
+          path: ./dist
 
       - name: Build artifact for Linux (${{ matrix.os }})
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v6
         with:
           name: linux-${{ matrix.os }}-build
-          path: ./python/dist
+          path: ./dist
 
       - name: Build artifact for MacOS (${{ matrix.os }})
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v6
         with:
           name: macos-${{ matrix.os }}-build
-          path: ./python/dist
+          path: ./dist
