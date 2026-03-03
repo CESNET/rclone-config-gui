@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2025 CESNET
 #
-# rclone_pygui is free software; you can redistribute it and/or modify
+# rclone_config_gui is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """ rclone control class """
@@ -14,12 +14,12 @@ from PySide6.QtWidgets import QMessageBox
 from .utils import WarningQD, fatal_err, rclone_obscure
 
 class Rclone_control():
-    def __init__(self, debug, rclone_command, rclone_pygui_command=None):
+    def __init__(self, debug, rclone_command, rclone_config_command=None):
         self.debug = debug
         if self.debug: print("Rclone_control init")
         self.rclone_version = None
         self.rclone_config = None
-        self.rclone_pygui_command = rclone_pygui_command or sys.argv[0]
+        self.rclone_config_command = rclone_config_command or sys.argv[0]
         if not (rclone := shutil.which(rclone_command)):
             WarningQD(title="Warning", text="Rclone command not found.", icon=QMessageBox.Warning).exec()
             fatal_err(f"Rclone command \"{rclone_command}\" not found.")
@@ -57,7 +57,7 @@ class Rclone_control():
             self.rclone_command, [
                 '--no-console',
                 '--config', self.rclone_config, 'config', 'encryption', subcomm, '--ask-password=false',
-                '--password-command', f"{self.rclone_pygui_command} --password_command"
+                '--password-command', f"{self.rclone_config_command} --password_command"
             ],
             self.debug,
             { 'PYGUI_RCLONE_OLDPW': old_pw, 'PYGUI_RCLONE_NEWPW': new_pw }

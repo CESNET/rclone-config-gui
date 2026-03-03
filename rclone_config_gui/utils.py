@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QMessageBox, QDialog, QDialogButtonBox, QVBoxLayou
 from PySide6.QtGui import QValidator
 
 class WarningQD(QDialog):
-    def __init__(self, parent=None, title="About", text="S3 rclone pygui (c) 2025 CESNET", icon=None):
+    def __init__(self, parent=None, title="About", text="S3 rclone config GUI (c) 2025 CESNET", icon=None):
         # icons: QMessageBox.NoIcon QMessageBox.Information QMessageBox.Question QMessageBox.Warning QMessageBox.Critical
         super().__init__(parent)
         self.box = QMessageBox()

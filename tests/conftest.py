@@ -7,8 +7,8 @@
 
 import pytest, tempfile, os, shutil
 from collections import namedtuple
-from rclone_pygui.rclone_control import Rclone_control
-from rclone_pygui.mmodel import MModel
+from rclone_config_gui.rclone_control import Rclone_control
+from rclone_config_gui.mmodel import MModel
 
 def literal(**kw):
     return namedtuple('literal', kw)(**kw)
@@ -23,7 +23,7 @@ def tmpf():
 def rcl_users(tmpf):
     shutil.copy('../.config/rclone_pytest.conf', tmpf)
     #args = literal(rclone_command='rclone', rclone_config=tmpf, debug=False)
-    rcl = Rclone_control(False, 'rclone', rclone_pygui_command='../rclone_config.py')
+    rcl = Rclone_control(False, 'rclone', rclone_config_command='../rclone_config.py')
     rcl.set_rclone_config(tmpf)
     return rcl
 
@@ -31,7 +31,7 @@ def rcl_users(tmpf):
 def rcl_dpo(tmpf):
     shutil.copy('../.config/rclone_pytest.conf', tmpf)
     #args = literal(rclone_command='rclone', rclone_config=tmpf, debug=False)
-    rcl = Rclone_control(False, 'rclone', rclone_pygui_command='../rclone_config_dpo.py')
+    rcl = Rclone_control(False, 'rclone', rclone_config_command='../rclone_config_dpo.py')
     rcl.set_rclone_config(tmpf)
     return rcl
 

@@ -8,7 +8,7 @@
 import pytest, shutil, re, os
 from types import SimpleNamespace as nspace
 
-from rclone_pygui.utils import *
+from rclone_config_gui.utils import *
 
 def test_rclone_obscure():
     st = 'abcd2'

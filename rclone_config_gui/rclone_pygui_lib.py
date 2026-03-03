@@ -1,10 +1,10 @@
 #
 # Copyright (C) 2025 CESNET
 #
-# rclone_pygui is free software; you can redistribute it and/or modify
+# rclone_config_gui is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-""" S3 rclone pygui """
+""" S3 rclone config gui - lib """
 
 import os, json
 from PySide6.QtWidgets import QWidget, QGroupBox, QLabel, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout, QStyle, QFileDialog, QMessageBox

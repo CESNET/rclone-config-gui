@@ -1,10 +1,10 @@
 #
 # Copyright (C) 2025 CESNET
 #
-# rclone_pygui is free software; you can redistribute it and/or modify
+# rclone_config_gui is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-""" S3 rclone pygui window """
+""" S3 rclone config GUI window """
 
 import sys, os, platform
 from PySide6.QtWidgets import QMainWindow, QMessageBox
@@ -18,7 +18,7 @@ from .rclone_control import Rclone_control
 from .rclone_pygui_lib import MainWidget
 
 class MainWindow(QMainWindow):
-    def __init__(self, qapp, args, variant="rclone_pygui"):
+    def __init__(self, qapp, args, variant="rclone_config_gui"):
         super().__init__()
         self.qapp = qapp
         self.variant = variant
@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         self.menu_bar = self.menuBar()
         self.menu = nspace(file=nspace(actions=nspace()), view=nspace(actions=nspace()), help=nspace(actions=nspace()))
         about_text = f"""
-        S3 {self.variant} (rclone pygui) v{__version__}
+        S3 {self.variant} (rclone config GUI) v{__version__}
         (c) 2025 CESNET
         {platform.system()}; {platform.machine()}
         """
