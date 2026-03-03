@@ -16,7 +16,7 @@ if [[ "$RUNNER" == "Windows" ]]; then SCRIPT_NAME="${SCRIPT_NAME}.exe"; fi
 echo -ne "   test: ${SCRIPT_NAME} --help\r"
 set +e
 read -r -d '' GOLDEN <<- EOT
-usage: ${SCRIPT_NAME} [-h] [-d] [-c RCLONE_CONFIG] [-r RCLONE_COMMAND] [-p]
+usage: ${SCRIPT_NAME} [-h] [-d] [-c RCLONE_CONFIG] [-r RCLONE_COMMAND] [-p] [-v]
 
 CESNET S3 rclone GUI config for users
 
