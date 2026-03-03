@@ -21,7 +21,7 @@ def tmpf():
 
 @pytest.fixture(scope="module")
 def rcl_users(tmpf):
-    shutil.copy('../.config/rclone_pytest.conf', tmpf)
+    shutil.copy('rclone_pytest.conf', tmpf)
     #args = literal(rclone_command='rclone', rclone_config=tmpf, debug=False)
     rcl = Rclone_control(False, 'rclone', rclone_config_command='../rclone_config.py')
     rcl.set_rclone_config(tmpf)
@@ -29,7 +29,7 @@ def rcl_users(tmpf):
 
 @pytest.fixture(scope="module")
 def rcl_dpo(tmpf):
-    shutil.copy('../.config/rclone_pytest.conf', tmpf)
+    shutil.copy('rclone_pytest.conf', tmpf)
     #args = literal(rclone_command='rclone', rclone_config=tmpf, debug=False)
     rcl = Rclone_control(False, 'rclone', rclone_config_command='../rclone_config_dpo.py')
     rcl.set_rclone_config(tmpf)
