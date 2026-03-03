@@ -8,7 +8,7 @@
 
 set -e
 
-cd python/dist
+cd dist
 
 echo "runner: $RUNNER"
 if [[ "$RUNNER" == "Windows" ]]; then SCRIPT_NAME="${SCRIPT_NAME}.exe"; fi
