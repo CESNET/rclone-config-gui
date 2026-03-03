@@ -1,0 +1,41 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2025 CESNET.
+#
+
+""" """
+
+import pytest, tempfile, os, shutil
+from collections import namedtuple
+from rclone_pygui.rclone_control import Rclone_control
+from rclone_pygui.mmodel import MModel
+
+def literal(**kw):
+    return namedtuple('literal', kw)(**kw)
+
+@pytest.fixture(scope="session")
+def tmpf():
+    nf, fn = tempfile.mkstemp()
+    yield fn
+    os.unlink(fn)
+
+@pytest.fixture(scope="module")
+def rcl_users(tmpf):
+    shutil.copy('../.config/rclone_pytest.conf', tmpf)
+    #args = literal(rclone_command='rclone', rclone_config=tmpf, debug=False)
+    rcl = Rclone_control(False, 'rclone', rclone_pygui_command='../rclone_config.py')
+    rcl.set_rclone_config(tmpf)
+    return rcl
+
+@pytest.fixture(scope="module")
+def rcl_dpo(tmpf):
+    shutil.copy('../.config/rclone_pytest.conf', tmpf)
+    #args = literal(rclone_command='rclone', rclone_config=tmpf, debug=False)
+    rcl = Rclone_control(False, 'rclone', rclone_pygui_command='../rclone_config_dpo.py')
+    rcl.set_rclone_config(tmpf)
+    return rcl
+
+@pytest.fixture(scope="session")
+def mm(tmpf):
+    mm = MModel()
+    return mm
