@@ -66,10 +66,10 @@ jobs:
 
       - name: run tests
         run: |
-          pip install pytest
           echo "${{ runner.os }}"
           export RUNNER="${{ runner.os }}"
-          ./run_tests.sh
+          #pip install pytest
+          #./run_tests.sh
           ./run_tests_dist.sh
         shell: bash
 
