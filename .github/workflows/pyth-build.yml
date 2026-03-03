@@ -43,7 +43,6 @@ jobs:
       - name: Build executable for Windows
         if: runner.os == 'Windows'
         run: |
-          cd python
           mv ./${SCRIPT_NAME}.py ./${SCRIPT_NAME}.pyw
           mv ./${SCRIPT_NAME2}.py ./${SCRIPT_NAME2}.pyw
           pyinstaller --noconsole --onefile --add-data "./images/spinner.gif:./images" ./${SCRIPT_NAME}.pyw
@@ -53,7 +52,6 @@ jobs:
       - name: Build executable for Linux
         if: runner.os == 'Linux'
         run: |
-          cd python
           pyinstaller --noconsole --onefile --add-data "./images/spinner.gif:./images" ./${SCRIPT_NAME}.py
           pyinstaller --noconsole --onefile --add-data "./images/spinner.gif:./images" ./${SCRIPT_NAME2}.py
         shell: bash
@@ -61,7 +59,6 @@ jobs:
       - name: Build executable for MacOS
         if: runner.os == 'macOS'
         run: |
-          cd python
           # --target-architecture x86_64, arm64, universal2
           pyinstaller --noconsole --onefile --add-data "./images/spinner.gif:./images" ./${SCRIPT_NAME}.py
           pyinstaller --noconsole --onefile --add-data "./images/spinner.gif:./images" ./${SCRIPT_NAME2}.py
