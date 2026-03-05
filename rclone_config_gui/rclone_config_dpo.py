@@ -362,10 +362,10 @@ class MainWidget4DPO(MainWidget):
                 n = self.widget.data.get_nspace()
                 export_pw = self.widget.input_export_pw.text()
                 r = True
+                r = r and self.widget.rclone_control.rclone_change_config_pw(export_pw, export_pw)
                 r = r and self.widget.rclone_control.rclone_create_profile(export_pw, self.widget.rclone_control.profile_name, 's3', 'provider=Ceph')
                 r = r and self.widget.rclone_control.rclone_change_keys(export_pw, n.endpoint, '', '')
                 r = r and self.widget.rclone_control.rclone_create_enc_profile(export_pw, n.enc_profile, n.enc_bucket, n.enc_password, n.enc_password2)
-                r = r and self.widget.rclone_control.rclone_change_config_pw(export_pw, export_pw)
                 self.widget.status = r
             def th_finally(self):
                 self.widget.spinner_export_pw.hide()
