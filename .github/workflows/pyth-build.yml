@@ -78,19 +78,19 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v6
         with:
-          name: windows-build-{{ github.ref_name }}
+          name: windows-build-${{ github.ref_name }}
           path: ./dist
 
       - name: Build artifact for Linux (${{ matrix.os }})
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v6
         with:
-          name: linux-${{ matrix.os }}-build-{{ github.ref_name }}
+          name: linux-${{ matrix.os }}-build-${{ github.ref_name }}
           path: ./dist
 
       - name: Build artifact for MacOS (${{ matrix.os }})
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@v6
         with:
-          name: macos-${{ matrix.os }}-build-{{ github.ref_name }}
+          name: macos-${{ matrix.os }}-build-${{ github.ref_name }}
           path: ./dist
