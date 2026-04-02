@@ -124,21 +124,21 @@ class Rclone_control():
         if st != 0: raise Exception(f"Wrong status ({st}) from subprocess ({err=}).")
         return True
 
-    def _generate_pwd(self, bits=None):
+    def _generate_pwd(self, bits=None, pw=None, use_obscure=False):
         if bits is None: bits = self.pwbits
-        pw = secrets.token_urlsafe(bits // 8)
-        #opw = rclone_obscure(pw)
+        if pw is None: pw = secrets.token_urlsafe(bits // 8)
+        if use_obscure: pw = rclone_obscure(pw)
         return pw
 
-    def rclone_configure_enc_profile(self, config_pw, enc_profile=None, enc_bucket=None, password=None, password2=None):
+    def rclone_configure_enc_profile(self, config_pw, enc_profile=None, enc_bucket=None, password=None, password2=None, use_obscure=True):
         self.enc_profile = f"{self.profile_name}_enc" if enc_profile is None else enc_profile
         self.enc_bucket = "encbucket-default" if enc_bucket is None else enc_bucket
         self.enc_remote = f"{self.profile_name}:{self.enc_bucket}"
         if self.debug: print("rclone_configure_enc_profile:")
         options = {
             "remote": { "confval":self.enc_remote, 'updated':False },
-            "password": { "confval":rclone_obscure(self._generate_pwd() if password is None else password), 'updated':False },
-            "password2": { "confval":rclone_obscure(self._generate_pwd() if password2 is None else password2), 'updated':False },
+            "password": { "confval":self._generate_pwd(pw=password, use_obscure=use_obscure), 'updated':False },
+            "password2": { "confval":self._generate_pwd(pw=password2, use_obscure=use_obscure), 'updated':False },
         }
         nextarg, rcstate, rcresult, rcconfname  = "--all", None, "", ""
         while True:

@@ -112,6 +112,7 @@ class Controller4DPO(Controller):
 # ====== MainWidget ==========
 class MainWidget4DPO(MainWidget):
     def __init__(self, window, args, data, ctrl_class):
+        self.advanced = args.advanced
         super().__init__(window, args, data, ctrl_class)
         if self.debug: print("MainWidget4DPO init")
 
@@ -172,10 +173,13 @@ class MainWidget4DPO(MainWidget):
         self.spinner_test_bucket.hide()
         self.input_enc_password = QLineEdit("pw")
         self.input_enc_password.setValidator(self.password_validator)
-        self.input_enc_password.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
+        if not self.advanced: self.input_enc_password.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
+        pw_tooltip = "Use Generate button for strong password, editable in advanced UI only" if not self.advanced else "Plain passwords only, NOT rclone-obscured"
+        self.input_enc_password.setToolTip(pw_tooltip)
         self.input_enc_password2 = QLineEdit("pw2")
         self.input_enc_password2.setValidator(self.password_validator)
-        self.input_enc_password2.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
+        if not self.advanced: self.input_enc_password2.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
+        self.input_enc_password2.setToolTip(pw_tooltip)
         self.button_generate_enc_password = QPushButton("Generate")
         self.button_generate_enc_password.setToolTip(f"Generate strong password ({self.rclone_control.pwbits} bits)")
         self.button_generate_enc_password.clicked.connect(lambda : self.input_enc_password.setText(self.rclone_control._generate_pwd()))
@@ -184,15 +188,15 @@ class MainWidget4DPO(MainWidget):
         self.button_generate_enc_password2.clicked.connect(lambda : self.input_enc_password2.setText(self.rclone_control._generate_pwd()))
         #
         layout = QGridLayout()
-        for i, label_text, key, butt, spinner in (
-#            (0, "Encryption-layer profile:", "enc_profile", None, None),
-            (0, "Underlying S3 profile:", "profile_name2", None, None),
-            (1, "Encrypted bucket:", "enc_bucket", self.button_test_bucket, self.spinner_test_bucket),
-            (2, "Encryption password:", "enc_password", self.button_generate_enc_password, None),
-            (3, "Encryption password2:", "enc_password2", self.button_generate_enc_password2, None),
+        for i, label_text, key, edit, butt, spinner in (
+            (0, "Underlying S3 profile:", "profile_name2", True, None, None),
+            (1, "Encrypted bucket:", "enc_bucket", True, self.button_test_bucket, self.spinner_test_bucket),
+            (2, "Encryption password:", "enc_password", False, self.button_generate_enc_password, None),
+            (3, "Encryption password2:", "enc_password2", False, self.button_generate_enc_password2, None),
         ):
-            input_widget = getattr(self, f"input_{key}")
             layout.addWidget(QLabel(label_text), i, 0)
+            input_widget = getattr(self, f"input_{key}")
+            if not edit and not self.advanced: input_widget.setEnabled(False)
             layout.addWidget(input_widget, i, 1, 1, (1+(0 if butt else 1)+(0 if spinner else 1)))
             if spinner: layout.addWidget(spinner, i, 2)
             if butt: layout.addWidget(butt, i, 3)
@@ -431,6 +435,7 @@ class MainWidget4DPO(MainWidget):
 def parse_args(argv):
     p = ArgumentParser(description="CESNET S3 rclone GUI config for DPO")
     p.add_argument("-d", "--debug", help="enable debug outputs (default %(default)s)", action="store_true")
+    p.add_argument("-a", "--advanced", action="store_true", help="enable advanced-user UI")
     p.add_argument("-c", "--rclone_config", help="rclone config file (default: %(default)s)", default=None)
     p.add_argument("-r", "--rclone_command", help="rclone command, could be full path to command (default: %(default)s)", default='rclone')
     p.add_argument("-p", "--password_command", action="store_true", help="run as rclone password command, for internal use")
