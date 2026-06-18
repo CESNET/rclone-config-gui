@@ -181,6 +181,7 @@ class MainWidget(QWidget):
     def __init__(self, window, args, data=None, ctrl_class=Controller):
         super().__init__()
         self.debug = args.debug
+        self.yubikey = args.yubikey
         self.data = MModel(self.debug) if data is None else data
         self.window = window
         self.rclone_control = self.window.rclone_control
@@ -262,13 +263,19 @@ class MainWidget(QWidget):
         self.input_old_pw.setPlaceholderText("Enter config password")
         self.input_old_pw.returnPressed.connect(self.process_button_old_pw)
         #
+        if self.yubikey:
+            self.button_yk = QPushButton("Use Yubikey", parent=gbox)
+            self.button_yk.setToolTip("Insert YubiKey before")
+            self.button_yk.clicked.connect(self.process_button_yk)
         self.button_old_pw = QPushButton("Decrypt to memory", parent=gbox)
         self.button_old_pw.setToolTip("Check password and read config")
         self.button_old_pw.clicked.connect(self.process_button_old_pw)
         #
         self.spinner_old_pw = AnimePlayer(os.path.join(self.window.bdir,'images/spinner.gif'),parent=self)
         layout = QHBoxLayout()
-        for widget in (label, self.input_old_pw, self.button_old_pw, self.spinner_old_pw):
+        widgets = [label, self.input_old_pw, self.button_old_pw, self.spinner_old_pw]
+        if self.yubikey: widgets.insert(2, self.button_yk)
+        for widget in widgets:
             layout.addWidget(widget)
         gbox.setLayout(layout)
         return gbox
@@ -336,6 +343,10 @@ class MainWidget(QWidget):
         self.input_new_pw.setPlaceholderText("New config password")
         self.input_new_pw.returnPressed.connect(self.process_button_new_pw)
         #
+        if self.yubikey:
+            self.button_yk2 = QPushButton("Use Yubikey", parent=gbox)
+            self.button_yk2.setToolTip("Insert YubiKey before")
+            self.button_yk2.clicked.connect(self.process_button_yk2)
         self.button_new_pw = QPushButton("Save encrypted", parent=gbox, disabled=True)
         self.button_new_pw.setToolTip("Save keys and set new password")
         self.button_new_pw.clicked.connect(self.process_button_new_pw)
@@ -343,7 +354,10 @@ class MainWidget(QWidget):
         self.spinner_new_pw = AnimePlayer(os.path.join(self.window.bdir,'images/spinner.gif'),parent=self)
         #
         layout = QHBoxLayout()
-        for widget in (label, self.input_new_pw, self.button_new_pw, self.spinner_new_pw):
+        widgets = [label, self.input_new_pw, self.button_new_pw, self.spinner_new_pw]
+        if self.yubikey:
+            widgets.insert(2, self.button_yk2)
+        for widget in widgets:
             layout.addWidget(widget)
         gbox.setLayout(layout)
         return gbox
@@ -409,6 +423,47 @@ class MainWidget(QWidget):
             def th_error(self, errmsg):
                 self.args['callback'](False, None, errmsg)
         XThreaded(self, args={'passwd':passwd, 'callback':callback})
+
+    def process_button_yk(self):
+        self.process_button_ykX(self.input_old_pw, self.button_yk, self.button_old_pw, self.process_button_old_pw, self.spinner_old_pw)
+
+    def process_button_yk2(self):
+        self.process_button_ykX(self.input_new_pw, self.button_yk2, self.button_new_pw, self.process_button_new_pw, self.spinner_new_pw)
+
+    def process_button_ykX(self, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall='rclone_config_gui'):
+        def get_result(status, result, errmsg='', process_butt_pw=None):
+#            print(f"process_button_yk: {status=}")
+            if status:
+                process_butt_pw()
+            else:
+                WarningQD(title="Warning", text=f"{result=} " if result is not None else "" + f"{errmsg}", icon=QMessageBox.Warning).exec()
+        class XThreaded(Threaded):
+            def __init__(self, widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall, args={}):
+                self.input_pw, self.butt_yk, self.butt_pw, self.process_butt_pw, self.spinner_pw, self.chall = input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall
+                super().__init__(widget, args)
+            def th_init(self):
+                self.spinner_pw.show()
+                self.butt_pw.setEnabled(False)
+                #self.widget._set_button_icon(self.widget.button_old_pw, 'SP_DialogCloseButton')
+                self.butt_yk.setText("Tap The YubiKey ...")
+            def th_run(self):
+                (self.st, self.err, self.out) = self.widget.rclone_control.subprocess_call("ykchalresp", ['-2', self.chall,], self.widget.debug)
+                self.err = self.err.rstrip()
+                if self.st > 0: raise Exception()
+            def th_finally(self):
+                self.spinner_pw.hide()
+                self.butt_pw.setEnabled(True)
+                self.input_pw.setText(self.out.strip())
+                self.butt_yk.setText("Use YubiKey")
+                #self.widget._set_button_icon(self.widget.button_old_pw, 'SP_DialogOpenButton')
+            def th_ready(self):
+                if self.widget.debug: print("out:", self.out)
+                self.args['callback'](True, None, self.err, self.process_butt_pw)
+            def th_error(self, errmsg):
+                self.args['callback'](False, None, self.err, self.process_butt_pw)
+        XThreaded(self, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall, args={'callback':get_result})
+        #print(f"process_button_yk")
+        #if self.debug: print("process_button_yk")
 
     def process_button_old_pw(self):
         def get_result(status, result, errmsg=''):

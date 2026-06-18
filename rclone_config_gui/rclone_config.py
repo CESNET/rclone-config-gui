@@ -60,6 +60,7 @@ def parse_args(argv):
     p.add_argument("-c", "--rclone_config", help="rclone config file (default: %(default)s)", default=None)
     p.add_argument("-r", "--rclone_command", help="rclone command, could be full path to command (default: %(default)s)", default='rclone')
     p.add_argument("-p", "--password_command", action="store_true", help="run as rclone password command, for internal use")
+    p.add_argument("-y", "--yubikey", action="store_true", help="use YubiKey for password")
     p.add_argument("-v", "--version", action="version", help="print version and exit", version=f"%(prog)s {__version__}")
     return p.parse_args(argv)
 

@@ -124,7 +124,11 @@ class MainWidget4DPO(MainWidget):
         items.insert(4, self.enc_box)
         items.append(self.gbox_export_pw)
         self.setTabOrder(self.button_generate_enc_password2, self.input_new_pw)
-        self.setTabOrder(self.input_new_pw, self.button_new_pw)
+        if self.yubikey:
+            self.setTabOrder(self.input_new_pw, self.button_yk2)
+            self.setTabOrder(self.button_yk2, self.button_new_pw)
+        else:
+            self.setTabOrder(self.input_new_pw, self.button_new_pw)
         self.setTabOrder(self.button_new_pw, self.input_export_pw)
         super().finalizeGUI(items)
 
@@ -214,6 +218,10 @@ class MainWidget4DPO(MainWidget):
         self.input_export_pw.setPlaceholderText("New password for exported config ")
         self.input_export_pw.returnPressed.connect(self.process_button_export_pw)
         #
+        if self.yubikey:
+            self.button_yk3 = QPushButton("Use Yubikey", parent=gbox)
+            self.button_yk3.setToolTip("Insert YubiKey before")
+            self.button_yk3.clicked.connect(self.process_button_yk3)
         self.button_export_pw = QPushButton("Encrypt and export", parent=gbox, disabled=True)
         self.button_export_pw.setToolTip("Export config for users")
         self.button_export_pw.clicked.connect(self.process_button_export_pw)
@@ -221,15 +229,17 @@ class MainWidget4DPO(MainWidget):
         self.spinner_export_pw = AnimePlayer(os.path.join(self.window.bdir,'images/spinner.gif'),parent=self)
         #
         layout = QGridLayout()
-#        for widget in (self.export_config_label, label_export_pw, self.input_export_pw, self.button_export_pw, self.spinner_export_pw):
-#            layout.addWidget(widget)
         layout.addWidget(self.export_config_label, 0, 0, 1, 3)
         layout.addWidget(label_export_pw, 1, 0)
         layout.addWidget(self.input_export_pw, 1, 1)
-        layout.addWidget(self.button_export_pw, 1, 2)
-        layout.addWidget(self.spinner_export_pw, 1, 3)
+        if self.yubikey: layout.addWidget(self.button_yk3, 1, 2)
+        layout.addWidget(self.button_export_pw, 1, 3 if self.yubikey else 2)
+        layout.addWidget(self.spinner_export_pw, 1, 4 if self.yubikey else 3)
         gbox.setLayout(layout)
         return gbox
+
+    def process_button_yk3(self):
+        self.process_button_ykX(self.input_export_pw, self.button_yk3, self.button_export_pw, self.process_button_export_pw, self.spinner_export_pw)
 
     def _set_edited(self):
         super()._set_edited()
@@ -434,6 +444,7 @@ def parse_args(argv):
     p.add_argument("-c", "--rclone_config", help="rclone config file (default: %(default)s)", default=None)
     p.add_argument("-r", "--rclone_command", help="rclone command, could be full path to command (default: %(default)s)", default='rclone')
     p.add_argument("-p", "--password_command", action="store_true", help="run as rclone password command, for internal use")
+    p.add_argument("-y", "--yubikey", action="store_true", help="use YubiKey for password")
     p.add_argument("-v", "--version", action="version", help="print version and exit", version=f"%(prog)s {__version__}")
     return p.parse_args(argv)
 
