@@ -12,9 +12,10 @@ import subprocess as sp
 from PySide6.QtWidgets import QMessageBox
 
 from .utils import WarningQD, fatal_err, rclone_obscure
+from .anime_player import Threaded
 
 class Rclone_control():
-    def __init__(self, debug, rclone_command, rclone_config_command=None):
+    def __init__(self, debug, rclone_command, rclone_config_command=None, yubikey=False):
         self.debug = debug
         if self.debug: print("Rclone_control init")
         self.rclone_version = None
@@ -23,6 +24,7 @@ class Rclone_control():
         if not (rclone := shutil.which(rclone_command)):
             WarningQD(title="Warning", text="Rclone command not found.", icon=QMessageBox.Warning).exec()
             fatal_err(f"Rclone command \"{rclone_command}\" not found.")
+        if yubikey: self.check_yubi_support()
         self.rclone_command = rclone
         if self.debug: print(f"Using rclone command \"{rclone}\"")
         # ***
@@ -206,3 +208,49 @@ class Rclone_control():
                 proc.stdin.close()
                 proc.terminate()
                 if debug: print(f"-->subprocess call finnished: {cmd} {cmd_args=}: {status=} {err=}")
+
+    def check_yubi_support(self):
+        self.ykutils = {}
+        for util in ('ykinfo', 'ykchalresp'):
+            if not (utilfp := shutil.which(util)):
+                WarningQD(title="Warning", text=f"Utility \"{util}\" not found.", icon=QMessageBox.Warning).exec()
+                fatal_err(f"Utility \"{util}\" not found.")
+            if self.debug: print(f"Utility \"{util}\" found: {utilfp}")
+            self.ykutils[util] = utilfp
+        (st, err, out) = self.subprocess_call(self.ykutils['ykinfo'], ['-v'],self.debug)
+        if st != 0:
+            WarningQD(title="Warning", text=f"{err.strip()}.", icon=QMessageBox.Warning).exec()
+            fatal_err(f"{err.strip()}.")
+            #raise Exception(f"Wrong status ({st}) from subprocess ({err=}).")
+
+    def process_button_yk_gen(self, widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall=None):
+        def get_result(status, result, errmsg='', process_butt_pw=None):
+            if status:
+                process_butt_pw()
+            else:
+                WarningQD(title="Warning", text=f"{result=} " if result is not None else "" + f"{errmsg}", icon=QMessageBox.Warning).exec()
+        class XThreaded(Threaded):
+            def __init__(self, widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall, args={}):
+                self.input_pw, self.butt_yk, self.butt_pw, self.process_butt_pw, self.spinner_pw = input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw
+                self.chall = self.input_pw.text() if chall is None else chall
+                super().__init__(widget, args)
+            def th_init(self):
+                self.spinner_pw.show()
+                self.butt_pw.setEnabled(False)
+                self.text_butt_yk = self.butt_yk.text()
+                self.butt_yk.setText("Tap The YubiKey ...")
+            def th_run(self):
+                (self.st, self.err, self.out) = self.widget.rclone_control.subprocess_call("ykchalresp", ['-2', self.chall,], self.widget.debug)
+                self.err = self.err.rstrip()
+                if self.st > 0: raise Exception()
+            def th_finally(self):
+                self.spinner_pw.hide()
+                self.butt_pw.setEnabled(True)
+                self.input_pw.setText(self.out.strip())
+                self.butt_yk.setText(self.text_butt_yk)
+            def th_ready(self):
+                if self.widget.debug: print("out:", self.out)
+                self.args['callback'](True, None, self.err, self.process_butt_pw)
+            def th_error(self, errmsg):
+                self.args['callback'](False, None, self.err, self.process_butt_pw)
+        XThreaded(widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall, args={'callback':get_result})

@@ -219,8 +219,8 @@ class MainWidget4DPO(MainWidget):
         self.input_export_pw.returnPressed.connect(self.process_button_export_pw)
         #
         if self.yubikey:
-            self.button_yk3 = QPushButton("Use Yubikey", parent=gbox)
-            self.button_yk3.setToolTip("Insert YubiKey before")
+            self.button_yk3 = QPushButton("Use USER's Yubikey", parent=gbox)
+            self.button_yk3.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
             self.button_yk3.clicked.connect(self.process_button_yk3)
         self.button_export_pw = QPushButton("Encrypt and export", parent=gbox, disabled=True)
         self.button_export_pw.setToolTip("Export config for users")
@@ -239,7 +239,7 @@ class MainWidget4DPO(MainWidget):
         return gbox
 
     def process_button_yk3(self):
-        self.process_button_ykX(self.input_export_pw, self.button_yk3, self.button_export_pw, self.process_button_export_pw, self.spinner_export_pw)
+        self.rclone_control.process_button_yk_gen(self, self.input_export_pw, self.button_yk3, self.button_export_pw, self.process_button_export_pw, self.spinner_export_pw)
 
     def _set_edited(self):
         super()._set_edited()

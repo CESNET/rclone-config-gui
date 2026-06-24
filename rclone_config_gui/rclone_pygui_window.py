@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.prepare_menu()
         self.complete_menu()
         self.create_stausbar()
-        self.rclone_control = Rclone_control(args.debug, args.rclone_command)
+        self.rclone_control = Rclone_control(args.debug, args.rclone_command, yubikey=args.yubikey)
         self.set_MainWidget()
         #self.create_context_menu()
         self.setWindowIcon(QIcon(os.path.join(self.bdir,'images/favicon.png')))
