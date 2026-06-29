@@ -39,7 +39,7 @@ class Threaded():
                 self.th.th_run()
                 self.ready.emit(True)
             except Exception as e:
-                self.errmsg = f"{e}"
+                self.errmsg = f"{e}".rstrip()
                 self.error.emit(False)
         def process_ready(self, st):
             self.th.th_finally()

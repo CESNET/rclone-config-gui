@@ -89,6 +89,19 @@ def rclone_obscure(str, decode=False):
         dp = aes.decrypt(ep)
         return dp.decode('utf-8')
 
+def get_yubi_resp(challenge):
+    from ykman.device import list_all_devices		#, scan_devices
+    from yubikit.yubiotp import YubiOtpSession
+    from yubikit.core.otp import OtpConnection
+    devices = list_all_devices()
+    if not devices:
+        raise RuntimeError("No yubikey present.\nInsert YubiKey and try again.")
+    device, info = devices[0]
+    with device.open_connection(OtpConnection) as conn:
+        session = YubiOtpSession(conn)
+        response = session.calculate_hmac_sha1(2, challenge.encode())
+    return response.hex()
+
 def rclone_deobscure(str):
     return rclone_obscure(str, True)
 
@@ -99,4 +112,7 @@ def fatal_err(msg, status=1):
     print(f"Fatal error: {msg}")
     sys.exit(status)
 
-__all__ = ['WarningQD', 'ConfirmQD', 'SelectQD', 'InputQD', 'resource_path', 'fatal_err', 'rclone_obscure', 'rclone_deobscure', 'empty_file', 'EncProfileValidator']
+__all__ = [
+    'WarningQD', 'ConfirmQD', 'SelectQD', 'InputQD', 'resource_path', 'fatal_err', 'rclone_obscure', 'rclone_deobscure',
+    'empty_file', 'EncProfileValidator', 'get_yubi_resp'
+]

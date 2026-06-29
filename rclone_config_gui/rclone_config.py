@@ -12,7 +12,7 @@ import sys, os, json
 from PySide6.QtWidgets import QApplication, QMessageBox
 from argparse import ArgumentParser
 
-from .utils import WarningQD
+from .utils import WarningQD, get_yubi_resp
 from .rclone_pygui_window import MainWindow
 from .rclone_pygui_lib import MainWidget, Controller
 from .version import __version__
@@ -68,13 +68,22 @@ def main(argv = None):
     args = parse_args(argv)
     if args.password_command:
         # internal password command mode:
-        subproc_old_pw = os.environ.get('PYGUI_RCLONE_OLDPW', "")
-        subproc_new_pw = os.environ.get('PYGUI_RCLONE_NEWPW', "")
-        pwchng = os.environ.get('RCLONE_PASSWORD_CHANGE', "")
-        if pwchng != "1":
-            print(subproc_old_pw)
+        if not args.yubikey:
+            subproc_old_pw = os.environ.get('PYGUI_RCLONE_OLDPW', "")
+            subproc_new_pw = os.environ.get('PYGUI_RCLONE_NEWPW', "")
+            pwchng = os.environ.get('RCLONE_PASSWORD_CHANGE', "")
+            if pwchng != "1":
+                print(subproc_old_pw)
+            else:
+                print(subproc_new_pw)
         else:
-            print(subproc_new_pw)
+            # yubikey challenge-response:
+            challenge = os.environ.get('PYGUI_YUBIKEY_CHALLENGE', "")
+            try:
+                print(get_yubi_resp(challenge))
+            except RuntimeError as e:
+                print(f"{e}".rstrip(), file=sys.stderr)
+                sys.exit(1)
     else:
         # normal mode:
         MainWindow4User(QApplication(), args).run()

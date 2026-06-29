@@ -11,7 +11,7 @@ import sys, os, re, json, shutil, platform, secrets
 import subprocess as sp
 from PySide6.QtWidgets import QMessageBox
 
-from .utils import WarningQD, fatal_err, rclone_obscure
+from .utils import WarningQD, fatal_err, rclone_obscure, get_yubi_resp
 from .anime_player import Threaded
 
 class Rclone_control():
@@ -210,18 +210,19 @@ class Rclone_control():
                 if debug: print(f"-->subprocess call finnished: {cmd} {cmd_args=}: {status=} {err=}")
 
     def check_yubi_support(self):
-        self.ykutils = {}
-        for util in ('ykinfo', 'ykchalresp'):
-            if not (utilfp := shutil.which(util)):
-                WarningQD(title="Warning", text=f"Utility \"{util}\" not found.", icon=QMessageBox.Warning).exec()
-                fatal_err(f"Utility \"{util}\" not found.")
-            if self.debug: print(f"Utility \"{util}\" found: {utilfp}")
-            self.ykutils[util] = utilfp
-        (st, err, out) = self.subprocess_call(self.ykutils['ykinfo'], ['-v'],self.debug)
-        if st != 0:
-            WarningQD(title="Warning", text=f"{err.strip()}.", icon=QMessageBox.Warning).exec()
-            fatal_err(f"{err.strip()}.")
-            #raise Exception(f"Wrong status ({st}) from subprocess ({err=}).")
+        self.yksupport, self.ykutils = False, {}
+        try:
+            from ykman.device import list_all_devices		#, scan_devices
+            from yubikit.yubiotp import YubiOtpSession
+            from yubikit.core.otp import OtpConnection
+            self.yksupport = True
+        except ModuleNotFoundError as e:
+            for util in ('ykchalresp',):
+                if not (utilfp := shutil.which(util)):
+                    WarningQD(title="Warning", text=f"Utility \"{util}\" not found.", icon=QMessageBox.Warning).exec()
+                    fatal_err(f"Utility \"{util}\" not found.")
+                if self.debug: print(f"Utility \"{util}\" found: {utilfp}")
+                self.ykutils[util] = utilfp
 
     def process_button_yk_gen(self, widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall=None):
         def get_result(status, result, errmsg='', process_butt_pw=None):
@@ -240,17 +241,20 @@ class Rclone_control():
                 self.text_butt_yk = self.butt_yk.text()
                 self.butt_yk.setText("Tap The YubiKey ...")
             def th_run(self):
-                (self.st, self.err, self.out) = self.widget.rclone_control.subprocess_call("ykchalresp", ['-2', self.chall,], self.widget.debug)
-                self.err = self.err.rstrip()
-                if self.st > 0: raise Exception()
+                if self.widget.rclone_control.yksupport:
+                    self.st, self.err, self.out = None, '', ''
+                    self.out = get_yubi_resp(self.chall)
+                else:
+                    (self.st, self.err, self.out) = self.widget.rclone_control.subprocess_call("ykchalresp", ['-2', self.chall,], self.widget.debug)
+                    if self.st > 0: raise Exception(f"{self.err.rstrip()}\nInsert YubiKey and try again.")
             def th_finally(self):
                 self.spinner_pw.hide()
                 self.butt_pw.setEnabled(True)
-                self.input_pw.setText(self.out.strip())
                 self.butt_yk.setText(self.text_butt_yk)
             def th_ready(self):
                 if self.widget.debug: print("out:", self.out)
-                self.args['callback'](True, None, self.err, self.process_butt_pw)
+                self.input_pw.setText(self.out.strip())
+                self.args['callback'](True, None, '', self.process_butt_pw)
             def th_error(self, errmsg):
-                self.args['callback'](False, None, self.err, self.process_butt_pw)
+                self.args['callback'](False, None, errmsg, self.process_butt_pw)
         XThreaded(widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall, args={'callback':get_result})
