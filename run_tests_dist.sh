@@ -29,6 +29,7 @@ options:
                         rclone command, could be full path to command (default: rclone)
   -p, --password_command
                         run as rclone password command, for internal use
+  -y, --yubikey         use YubiKey for password
   -v, --version         print version and exit
 EOT
 set -e
