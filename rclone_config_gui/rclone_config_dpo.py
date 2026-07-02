@@ -125,11 +125,8 @@ class MainWidget4DPO(MainWidget):
         items.insert(4, self.enc_box)
         items.append(self.gbox_export_pw)
         self.setTabOrder(self.button_generate_enc_password2, self.input_new_pw)
-        if self.yubikey:
-            self.setTabOrder(self.input_new_pw, self.button_yk2)
-            self.setTabOrder(self.button_yk2, self.button_new_pw)
-        else:
-            self.setTabOrder(self.input_new_pw, self.button_new_pw)
+        self.setTabOrder(self.input_new_pw, self.button_yk2)
+        self.setTabOrder(self.button_yk2, self.button_new_pw)
         self.setTabOrder(self.button_new_pw, self.input_export_pw)
         super().finalizeGUI(items)
 
@@ -222,10 +219,10 @@ class MainWidget4DPO(MainWidget):
         self.input_export_pw.setPlaceholderText("New password for exported config ")
         self.input_export_pw.returnPressed.connect(self.process_button_export_pw)
         #
-        if self.yubikey:
-            self.button_yk3 = QPushButton("Use USER's Yubikey", parent=gbox)
-            self.button_yk3.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
-            self.button_yk3.clicked.connect(self.process_button_yk3)
+        self.button_yk3 = QPushButton("Use USER's Yubikey", parent=gbox)
+        self.button_yk3.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
+        self.button_yk3.clicked.connect(self.process_button_yk3)
+        if not self.yubikey: self.button_yk3.setVisible(False)
         self.button_export_pw = QPushButton("Encrypt and export", parent=gbox, disabled=True)
         self.button_export_pw.setToolTip("Export config for users")
         self.button_export_pw.clicked.connect(self.process_button_export_pw)
@@ -236,9 +233,9 @@ class MainWidget4DPO(MainWidget):
         layout.addWidget(self.export_config_label, 0, 0, 1, 3)
         layout.addWidget(label_export_pw, 1, 0)
         layout.addWidget(self.input_export_pw, 1, 1)
-        if self.yubikey: layout.addWidget(self.button_yk3, 1, 2)
-        layout.addWidget(self.button_export_pw, 1, 3 if self.yubikey else 2)
-        layout.addWidget(self.spinner_export_pw, 1, 4 if self.yubikey else 3)
+        layout.addWidget(self.button_yk3, 1, 2)
+        layout.addWidget(self.button_export_pw, 1, 3)
+        layout.addWidget(self.spinner_export_pw, 1, 4)
         gbox.setLayout(layout)
         return gbox
 
@@ -440,6 +437,10 @@ class MainWidget4DPO(MainWidget):
             XThreaded(self)
         else:
             self.window.statusbar.showMessage("Some value is not acceptable.", 10000)
+
+    def _toggle_yubikey(self):
+        super()._toggle_yubikey()
+        for it in (self.button_yk1, self.button_yk2, self.button_yk3): it.setVisible(self.yubikey)
 
 # -----------------------------------------------------------------------------
 def parse_args(argv):

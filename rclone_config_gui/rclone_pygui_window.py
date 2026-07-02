@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
                 "label": "&File", "nick": "file",
                 "actions": [
                     {"label": "&Open config", "nick": "open",  "shortcut": QKeySequence.Open, "connect": lambda : self.centralWidget()._open_config_dialog()},
+                    {"label": f"&YubiKey ({'ON' if self.args.yubikey else 'OFF'})", "nick": "yubi",  "shortcut": None, "connect": lambda : self.centralWidget()._toggle_yubikey()},
                     {"label": "&Exit", "nick": "exit",  "shortcut": QKeySequence.Quit, "connect": lambda : self.centralWidget().quit()},
                 ],
             },
@@ -102,4 +103,3 @@ class MainWindow(QMainWindow):
 
     def quit(self):
         self.qapp.quit()
-

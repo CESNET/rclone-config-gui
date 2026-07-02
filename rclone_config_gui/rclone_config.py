@@ -53,6 +53,10 @@ class MainWidget4User(MainWidget):
         self.input_enc_profile.setText(crypt_profile)
         return True
 
+    def _toggle_yubikey(self):
+        super()._toggle_yubikey()
+        for it in (self.button_yk1, self.button_yk2): it.setVisible(self.yubikey)
+
 # -----------------------------------------------------------------------------
 def parse_args(argv):
     p = ArgumentParser(description="CESNET S3 rclone GUI config for users")

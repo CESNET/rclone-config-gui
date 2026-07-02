@@ -118,7 +118,7 @@ class Controller(QObject):
         for key in ('profile_name', 'endpoint', 'access_key_id', 'secret_access_key'):
             st.assignProperty(getattr(w, f"input_{key}"), "enabled", False)
             st.assignProperty(getattr(w, f"input_{key}"), "text", getattr(w.data, f"{key}"))
-        for it in (w.input_old_pw, w.button_old_pw,):
+        for it in (w.input_old_pw, w.button_old_pw, w.button_yk1,):
             st.assignProperty(it, "enabled", True)
         st.assignProperty(w.input_old_pw, "text", "")
         st.assignProperty(w.button_old_pw, "icon", w._std_icon("SP_DialogOpenButton"))
@@ -146,7 +146,7 @@ class Controller(QObject):
             st.assignProperty(it, "visible", True)
         for it in (w.spinner_old_pw, w.spinner_new_pw, w.spinner_test_s3):
             st.assignProperty(it, "visible", False)
-        for it in (w.input_old_pw, w.button_old_pw,):
+        for it in (w.input_old_pw, w.button_old_pw, w.button_yk1,):
             st.assignProperty(it, "enabled", False)
         for it in (w.input_new_pw, w.button_new_pw):
             st.assignProperty(it, "enabled", True)
@@ -263,10 +263,10 @@ class MainWidget(QWidget):
         self.input_old_pw.setPlaceholderText("Enter config password")
         self.input_old_pw.returnPressed.connect(self.process_button_old_pw)
         #
-        if self.yubikey:
-            self.button_yk1 = QPushButton("Use Yubikey", parent=gbox)
-            self.button_yk1.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
-            self.button_yk1.clicked.connect(self.process_button_yk1)
+        self.button_yk1 = QPushButton("Use Yubikey", parent=gbox)
+        self.button_yk1.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
+        self.button_yk1.clicked.connect(self.process_button_yk1)
+        if not self.yubikey: self.button_yk1.setVisible(False)
         self.button_old_pw = QPushButton("Decrypt to memory", parent=gbox)
         self.button_old_pw.setToolTip("Check password and read config")
         self.button_old_pw.clicked.connect(self.process_button_old_pw)
@@ -274,7 +274,7 @@ class MainWidget(QWidget):
         self.spinner_old_pw = AnimePlayer(os.path.join(self.window.bdir,'images/spinner.gif'),parent=self)
         layout = QHBoxLayout()
         widgets = [label, self.input_old_pw, self.button_old_pw, self.spinner_old_pw]
-        if self.yubikey: widgets.insert(2, self.button_yk1)
+        widgets.insert(2, self.button_yk1)
         for widget in widgets:
             layout.addWidget(widget)
         gbox.setLayout(layout)
@@ -343,10 +343,10 @@ class MainWidget(QWidget):
         self.input_new_pw.setPlaceholderText("New config password")
         self.input_new_pw.returnPressed.connect(self.process_button_new_pw)
         #
-        if self.yubikey:
-            self.button_yk2 = QPushButton("Use Yubikey", parent=gbox)
-            self.button_yk2.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
-            self.button_yk2.clicked.connect(self.process_button_yk2)
+        self.button_yk2 = QPushButton("Use Yubikey", parent=gbox)
+        self.button_yk2.setToolTip("Insert YubiKey before, entered password will be used as challenge string")
+        self.button_yk2.clicked.connect(self.process_button_yk2)
+        if not self.yubikey: self.button_yk2.setVisible(False)
         self.button_new_pw = QPushButton("Save encrypted", parent=gbox, disabled=True)
         self.button_new_pw.setToolTip("Save keys and set new password")
         self.button_new_pw.clicked.connect(self.process_button_new_pw)
@@ -355,8 +355,7 @@ class MainWidget(QWidget):
         #
         layout = QHBoxLayout()
         widgets = [label, self.input_new_pw, self.button_new_pw, self.spinner_new_pw]
-        if self.yubikey:
-            widgets.insert(2, self.button_yk2)
+        widgets.insert(2, self.button_yk2)
         for widget in widgets:
             layout.addWidget(widget)
         gbox.setLayout(layout)
@@ -520,6 +519,13 @@ class MainWidget(QWidget):
                 style = "color: '#000'; background-color: '#f44'"
                 edit.setStyleSheet(f"QLineEdit {{{style}}}")
         return ok_all
+
+    def _toggle_yubikey(self):
+        self.yubikey = not self.yubikey
+        if self.debug: print(f"{self.yubikey=}")
+        self.window.menu.file.actions.yubi.setText(f'&YubiKey ({"ON" if self.yubikey else "OFF"})')
+        self.rclone_control.yubikey = self.yubikey
+        if self.yubikey: self.rclone_control.check_yubi_support()
 
     def quit(self):
         if self.debug: print("Done.")
