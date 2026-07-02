@@ -21,7 +21,10 @@ class Rclone_control():
         self.rclone_version = None
         self.rclone_config = None
         self.rclone_config_command = rclone_config_command or os.path.realpath(sys.argv[0])
-        if not (rclone := shutil.which(rclone_command)):
+        rclone = None
+        for rclone_command_variant in (rclone_command, './rclone', './rclone.exe'):
+            if (rclone := shutil.which(rclone_command_variant)): break
+        if not rclone:
             WarningQD(title="Warning", text="Rclone command not found.", icon=QMessageBox.Warning).exec()
             fatal_err(f"Rclone command \"{rclone_command}\" not found.")
         if yubikey: self.check_yubi_support()
