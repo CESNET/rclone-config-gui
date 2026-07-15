@@ -58,22 +58,21 @@ class MModel():
         self.load_from_dict(self.template)
 
     def load_from_dict(self, d):
-#        for key in self.vars: setattr(self, key, d[key] if key in d else '')
-        if self.debug: print(f"load_from_dict: {d=}")
+        if self.debug: print(f"MModel: load_from_dict: {d=}")
         for key in self.vars:
             if key in d: setattr(self, key, d[key])
 
     def load_from_widget(self, widget, vars="all"):
-        if self.debug: print(f"load_from_widget: {vars=} {widget.input_endpoint.text()=}")
+        if self.debug: print(f"MModel: load_from_widget: {vars=} {widget.input_endpoint.text()=}")
         vars = {"all":self.vars, "s3_vars":self.s3_vars, "enc_vars":self.enc_vars}[vars]
         for key in  vars: setattr(self, key, getattr(widget, f"input_{key}").text())
-        if self.debug: print(f"load_from_widget2: {self.endpoint=}")
+        if self.debug: print(f"MModel: load_from_widget2: {self.endpoint=}")
 
     def save_to_widget(self, widget, vars="all"):
-        if self.debug: print(f"save_to_widget: {self.endpoint=}")
+        if self.debug: print(f"MModel: save_to_widget: {self.endpoint=}")
         vars = {"all":self.vars, "s3_vars":self.s3_vars, "enc_vars":self.enc_vars}[vars]
         for key in  vars: getattr(widget, f"input_{key}").setText(getattr(self, key))
-        if self.debug: print(f"save_to_widget2: {widget.input_endpoint.text()=}")
+        if self.debug: print(f"MModel: save_to_widget2: {widget.input_endpoint.text()=}")
 
     def get_dict(self):
         r = {}

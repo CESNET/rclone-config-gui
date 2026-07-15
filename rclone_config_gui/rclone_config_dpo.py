@@ -216,7 +216,7 @@ class MainWidget4DPO(MainWidget):
         self.input_export_pw.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
         self.input_export_pw.setValidator(self.password_validator)
         self.input_export_pw.setMinimumWidth(240)
-        self.input_export_pw.setPlaceholderText("New password for exported config ")
+        self.input_export_pw.setPlaceholderText("New password for exported config" if not self.yubikey else "YubiKey challenge string")
         self.input_export_pw.returnPressed.connect(self.process_button_export_pw)
         #
         self.button_yk3 = QPushButton("Use USER's Yubikey", parent=gbox)

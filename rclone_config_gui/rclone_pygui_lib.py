@@ -63,7 +63,7 @@ class Controller(QObject):
         self.states[State.finish_state()] = QFinalState()
         for s in State.states():
             if (meth:=f"do_work_in_{s}") not in dir(self):
-                setattr(self, meth, lambda s=s: print(f"work in {s}"))
+                setattr(self, meth, lambda s=s: print(f"Work in {s}"))
         # --- Signal to transition binding ---
         for src, dsts in State.transitions().items():
             for dst in dsts:
@@ -94,7 +94,7 @@ class Controller(QObject):
             st.assignProperty(it, "icon", w._std_icon("SP_DialogCloseButton"))
 
     def do_work_in_INIT(self):
-        if self.widget.debug: print("work in INIT (METHOD)")
+        if self.widget.debug: print("Work in INIT (METHOD)")
         rclconf = None
         if self.widget.data.rclone_config != None:
             rclconf = self.widget.data.rclone_config
@@ -126,7 +126,7 @@ class Controller(QObject):
         st.assignProperty(w.button_new_pw, "icon", w._std_icon("SP_DialogCloseButton"))
 
     def do_work_in_CONF(self):
-        if self.widget.debug: print("work in CONF (METHOD)")
+        if self.widget.debug: print("Work in CONF (METHOD)")
         if self.widget.data.s3manager_mode != None:
             self.goCONFtoPWOK.emit()
             return
@@ -158,7 +158,7 @@ class Controller(QObject):
         st.assignProperty(w.button_new_pw, "icon", w._std_icon("SP_DialogApplyButton"))
 
     def do_work_in_PWOK(self):
-        if self.widget.debug: print("work in PWOK (METHOD)")
+        if self.widget.debug: print("Work in PWOK (METHOD)")
         self.widget._set_profile_name(self.widget.data.profile_name)
         self.widget.data.save_to_widget(self.widget, "s3_vars")
         self.widget.input_access_key_id.setFocus()
@@ -167,13 +167,13 @@ class Controller(QObject):
     def prepare_BOTO(self):
         pass
     def do_work_in_BOTO(self):
-        if self.widget.debug: print("work in BOTO (METHOD)")
+        if self.widget.debug: print("Work in BOTO (METHOD)")
         self.widget._switch_widgets(self.widget.window.set_BotoWidget)
     # --- FIN ----------
     def prepare_FIN(self):
         pass
     def do_work_in_FIN(self):
-        if self.widget.debug: print("work in FIN (METHOD)")
+        if self.widget.debug: print("Work in FIN (METHOD)")
         self.widget.quit()
 
 # ====== MainWidget ==========
@@ -200,7 +200,7 @@ class MainWidget(QWidget):
     def _entered_state(self, new_state):
         self.state = new_state
         self.window._set_win_title(None, self.state)
-        if self.debug: print(f"entered state {new_state}")
+        if self.debug: print(f"Entered state {new_state}")
 
     def _state_machine(self):
         self.machine = QStateMachine()
@@ -214,7 +214,7 @@ class MainWidget(QWidget):
         #
         if self.debug: self.machine.finished.connect(lambda: print("Machine finished"))
         self.machine.start()
-        if self.debug: print("st.machine started ...")
+        if self.debug: print("State machine started ...")
 
     def set_config_file(self, rclconf):
         rclconf = os.path.relpath(rclconf)
@@ -260,7 +260,7 @@ class MainWidget(QWidget):
         self.input_old_pw = QLineEdit("", parent=gbox)
         self.input_old_pw.setEchoMode(QLineEdit.EchoMode.Password)
         self.input_old_pw.setMinimumWidth(240)
-        self.input_old_pw.setPlaceholderText("Enter config password")
+        self.input_old_pw.setPlaceholderText("Enter config password" if not self.yubikey else "Enter YubiKey challenge string")
         self.input_old_pw.returnPressed.connect(self.process_button_old_pw)
         #
         self.button_yk1 = QPushButton("Use Yubikey", parent=gbox)
@@ -340,7 +340,7 @@ class MainWidget(QWidget):
         self.input_new_pw.setEchoMode(QLineEdit.EchoMode.PasswordEchoOnEdit)
         self.input_new_pw.setValidator(self.password_validator)
         self.input_new_pw.setMinimumWidth(240)
-        self.input_new_pw.setPlaceholderText("New config password")
+        self.input_new_pw.setPlaceholderText("New config password" if not self.yubikey else "YubiKey challenge string")
         self.input_new_pw.returnPressed.connect(self.process_button_new_pw)
         #
         self.button_yk2 = QPushButton("Use Yubikey", parent=gbox)
@@ -505,7 +505,7 @@ class MainWidget(QWidget):
             self.window.statusbar.showMessage("Some value is not acceptable.", 10000)
 
     def _set_profile_name(self, profile_name=None):
-        if self.debug: print(f"_set_profile_name: {profile_name=}")
+        if self.debug: print(f"Set profile name: {profile_name=}")
         self.data.profile_name = profile_name
         self.rclone_control.profile_name = profile_name
         self.input_profile_name.setText(profile_name if profile_name!=None else 'not selected')

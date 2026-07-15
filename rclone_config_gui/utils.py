@@ -90,9 +90,13 @@ def rclone_obscure(str, decode=False):
         return dp.decode('utf-8')
 
 def get_yubi_resp(challenge):
-    from ykman.device import list_all_devices		#, scan_devices
-    from yubikit.yubiotp import YubiOtpSession
-    from yubikit.core.otp import OtpConnection
+    try:
+        from ykman.device import list_all_devices		#, scan_devices
+        from yubikit.yubiotp import YubiOtpSession
+        from yubikit.core.otp import OtpConnection
+    except ModuleNotFoundError as e:
+        print(f"ERR: module yubikey-manager not found. Try to install it or use ykchalresp utility.".rstrip(), file=sys.stderr)
+        sys.exit(1)
     devices = list_all_devices()
     if not devices:
         raise RuntimeError("No yubikey present.\nInsert YubiKey and try again.")

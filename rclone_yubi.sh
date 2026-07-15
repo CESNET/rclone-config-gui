@@ -27,4 +27,6 @@ done
 echo
 
 echo "Tap The YubiKey"
-PYGUI_YUBIKEY_CHALLENGE="$CHALL" rclone --password-command "./rclone_config.py -py" $@
+PASSWORD_COMMAND="./rclone_config.py -py"
+#PASSWORD_COMMAND="ykchalresp -2 $CHALL"
+PYGUI_YUBIKEY_CHALLENGE="$CHALL" rclone --password-command "$PASSWORD_COMMAND" $@

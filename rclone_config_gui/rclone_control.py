@@ -27,15 +27,15 @@ class Rclone_control():
         if not rclone:
             WarningQD(title="Warning", text="Rclone command not found.", icon=QMessageBox.Warning).exec()
             fatal_err(f"Rclone command \"{rclone_command}\" not found.")
-        if yubikey: self.check_yubi_support()
         self.rclone_command = rclone
-        if self.debug: print(f"Using rclone command \"{rclone}\"")
+        if self.debug: print(f"OK: rclone command found: \"{rclone}\"")
         # ***
         self.rclone_version = self.get_rclone_version(rclone, self.debug)
         self.pwbits = 2048
         self.enc_profile = None
         self.enc_bucket = None
-        if self.debug: print(f"rclone version: {self.rclone_version}")
+        if self.debug: print(f"Rclone version: {self.rclone_version}")
+        if yubikey: self.check_yubi_support()
 
     def set_rclone_config(self, rc=None):
         self.rclone_config = rc if rc!='' else None
@@ -43,7 +43,7 @@ class Rclone_control():
         return self.rclone_config if self.rclone_config is not None else 'not selected'
 
     def rclone_config_check(self, config_pw):
-        if self.debug: print("call rclone config dump")
+        if self.debug: print("Call rclone config dump")
         (st, err, out) = self.subprocess_call(
             self.rclone_command, ['--no-console', '--config', self.rclone_config, '--ask-password=false', 'config', 'dump'],
             self.debug,
@@ -172,7 +172,6 @@ class Rclone_control():
         return True
 
     def get_rclone_version(self, cmd, debug=False):
-        if debug: print("call rclone version")
         (st, err, out) = self.subprocess_call(cmd, ["version"], debug)
         if st == 0: return out.split("\n")[0].replace('rclone ', '')
         else: raise Exception(f"Rclone not found ({err=})")
@@ -181,7 +180,7 @@ class Rclone_control():
         wait_timeout_s = 10
         proc = None
         try:
-            if debug: print(f"subprocess call: {cmd} {cmd_args=} {env=}")
+            if debug: print(f">> Subprocess call: {cmd} {cmd_args=} {env=}")
             env_copy = os.environ.copy()
             if env != None: env_copy.update(env)
             kwargs = {}
@@ -200,7 +199,7 @@ class Rclone_control():
             proc.wait(timeout = wait_timeout_s)
             out = proc.stdout.read()
             err = proc.stderr.read()
-            if debug: print(out, err)
+            if debug: print(out.rstrip(), err.rstrip())
             status = proc.returncode
             return (status, err, out)
         except sp.TimeoutExpired:
@@ -210,7 +209,7 @@ class Rclone_control():
             if proc:
                 proc.stdin.close()
                 proc.terminate()
-                if debug: print(f"-->subprocess call finnished: {cmd} {cmd_args=}: {status=} {err=}")
+                if debug: print(f"<< Subprocess call finnished: {cmd} {cmd_args=}: {status=} {err=}")
 
     def check_yubi_support(self):
         self.yksupport, self.ykutils = False, {}
@@ -219,12 +218,20 @@ class Rclone_control():
             from yubikit.yubiotp import YubiOtpSession
             from yubikit.core.otp import OtpConnection
             self.yksupport = True
+            if self.debug: print(f"OK: yubikey-manager module found")
         except ModuleNotFoundError as e:
+            if self.debug: print(f"yubikey-manager module not found, trying ykchalresp utility ...")
             for util in ('ykchalresp',):
                 if not (utilfp := shutil.which(util)):
-                    WarningQD(title="Warning", text=f"Utility \"{util}\" not found.", icon=QMessageBox.Warning).exec()
-                    fatal_err(f"Utility \"{util}\" not found.")
-                if self.debug: print(f"Utility \"{util}\" found: {utilfp}")
+                    WarningQD(title="Warning",
+                        text=
+                            "No YubiKey support found.\n"
+                            "Try to install yubikey-manager module\n"
+                            "or yubikey-personalization package",
+                        icon=QMessageBox.Warning
+                    ).exec()
+                    fatal_err(f"ERR: no YubiKey support found.")
+                if self.debug: print(f"OK: \"{util}\" utility found: {utilfp}")
                 self.ykutils[util] = utilfp
 
     def process_button_yk_gen(self, widget, input_pw, butt_yk, butt_pw, process_butt_pw, spinner_pw, chall=None):
