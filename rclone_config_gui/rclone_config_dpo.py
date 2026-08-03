@@ -401,7 +401,6 @@ class MainWidget4DPO(MainWidget):
                 self.widget.spinner_new_pw.show()
                 self.widget.button_new_pw.setEnabled(False)
             def th_run(self):
-                old_enc_profile = self.widget.data.enc_profile
                 self.widget.data.load_from_widget(self.widget)
                 n = self.widget.data.get_nspace()
                 for key in ('old_pw','new_pw'): setattr(n, key, getattr(self.widget, f"input_{key}").text())
@@ -412,11 +411,12 @@ class MainWidget4DPO(MainWidget):
                 # run rclone to save S3 keys:
                 self.widget.status = self.widget.rclone_control.rclone_change_keys(n.new_pw, n.endpoint, n.access_key_id, n.secret_access_key)
                 if not self.widget.status: return
-                if n.enc_profile != old_enc_profile:
+                recreate = False
+                if n.enc_profile != n.old_enc_profile:
                     #if ConfirmQD(self.widget, f"Remove existing Encryption-layer Profile \"{old_enc_profile}\"?").exec():
                     r = True
                     r = r and self.widget.rclone_control.rclone_create_enc_profile(n.new_pw, n.enc_profile, n.enc_bucket)
-                    r = r and self.widget.rclone_control.rclone_delete_profile(n.new_pw, old_enc_profile)
+                    r = r and self.widget.rclone_control.rclone_delete_profile(n.new_pw, n.old_enc_profile)
                     self.widget.status = r
                 self.widget.status = self.widget.rclone_control.rclone_configure_enc_profile(n.new_pw, n.enc_profile, n.enc_bucket, n.enc_password, n.enc_password2)
             def th_finally(self):

@@ -44,6 +44,7 @@ class MModel():
             'enc_bucket': "encbucket",
             'enc_password': '',
             'enc_password2': '',
+            'old_enc_profile': 'encrypt_profile',
         }
         self.vars = self.template.keys()
         self.s3_vars = ('profile_name','endpoint','access_key_id','secret_access_key')
@@ -63,15 +64,19 @@ class MModel():
             if key in d: setattr(self, key, d[key])
 
     def load_from_widget(self, widget, vars="all"):
+        if self.enc_profile != widget.input_enc_profile.text():
+            self.old_enc_profile = self.enc_profile
         if self.debug: print(f"MModel: load_from_widget: {vars=} {widget.input_endpoint.text()=}")
         vars = {"all":self.vars, "s3_vars":self.s3_vars, "enc_vars":self.enc_vars}[vars]
-        for key in  vars: setattr(self, key, getattr(widget, f"input_{key}").text())
+        for key in vars:
+            if key!="old_enc_profile": setattr(self, key, getattr(widget, f"input_{key}").text())
         if self.debug: print(f"MModel: load_from_widget2: {self.endpoint=}")
 
     def save_to_widget(self, widget, vars="all"):
         if self.debug: print(f"MModel: save_to_widget: {self.endpoint=}")
         vars = {"all":self.vars, "s3_vars":self.s3_vars, "enc_vars":self.enc_vars}[vars]
-        for key in  vars: getattr(widget, f"input_{key}").setText(getattr(self, key))
+        for key in vars:
+            if key!="old_enc_profile": getattr(widget, f"input_{key}").setText(getattr(self, key))
         if self.debug: print(f"MModel: save_to_widget2: {widget.input_endpoint.text()=}")
 
     def get_dict(self):
